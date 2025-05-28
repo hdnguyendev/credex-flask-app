@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Share Account - CredEx{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="h4 mb-4">Share Account</h1>
+                
+                <div class="mb-4">
+                    <h5 class="card-title">Account Information</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th style="width: 150px;">Name:</th>
+                                <td>{{ account.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Username:</th>
+                                <td>{{ account.username }}</td>
+                            </tr>
+                            <tr>
+                                <th>Category:</th>
+                                <td>{{ account.category.name if account.category else 'Uncategorized' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <form method="POST" action="{{ url_for('sharing.create', account_id=account.id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.expires_in.label(class="form-label") }}
+                        {{ form.expires_in(class="form-select" + (" is-invalid" if form.expires_in.errors else "")) }}
+                        {% for error in form.expires_in.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.access_pin.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ form.access_pin(class="form-control" + (" is-invalid" if form.access_pin.errors else "")) }}
+                            <button type="button" class="btn btn-outline-secondary" onclick="generatePin()">
+                                <i class="fas fa-random"></i>
+                            </button>
+                        </div>
+                        {% for error in form.access_pin.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">This PIN will be required when accessing the share link.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('accounts.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function generatePin() {
+    const pin = Math.floor(100000 + Math.random() * 900000).toString();
+    document.querySelector('input[name="access_pin"]').value = pin;
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('accounts.create') if not account else url_for('accounts.edit', id=account.id) }}">
+                        {{ form.csrf_token }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                            {% for error in form.name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+                            {% for error in form.username.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                            {% for error in form.email.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password") }}
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')" onmousedown="event.preventDefault()">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if account and account.get_password() %}
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyPassword()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% if account and account.get_password() %}
+                                <small class="form-text text-muted">
+                                    Current password: <span id="current-password">{{ account.get_password() }}</span>
+                                    <button class="btn btn-sm btn-link" type="button" onclick="toggleCurrentPassword(event)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </small>
+                            {% endif %}
+                            {% for error in form.password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.url.label(class="form-label") }}
+                            {{ form.url(class="form-control" + (" is-invalid" if form.url.errors else "")) }}
+                            {% for error in form.url.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.category_id.label(class="form-label") }}
+                            {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+                            {% for error in form.category_id.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.notes.label(class="form-label") }}
+                            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows=3) }}
+                            {% for error in form.notes.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Account
+                            </button>
+                            <a href="{{ url_for('accounts.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+    return false; // Prevent form submission
+}
+
+function toggleCurrentPassword(event) {
+    event.preventDefault(); // Prevent default button behavior
+    const currentPassword = document.getElementById('current-password');
+    const icon = currentPassword.nextElementSibling.querySelector('i');
+    
+    if (currentPassword.style.display === 'none') {
+        currentPassword.style.display = 'inline';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        currentPassword.style.display = 'none';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function copyPassword() {
+    const currentPassword = document.getElementById('current-password');
+    if (currentPassword) {
+        navigator.clipboard.writeText(currentPassword.textContent)
+            .then(() => {
+                // Show a temporary success message
+                const button = currentPassword.nextElementSibling;
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => {
+                    button.innerHTML = originalIcon;
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy password: ', err);
+            });
+    }
+}
+
+// Hide current password by default
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPassword = document.getElementById('current-password');
+    if (currentPassword) {
+        currentPassword.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}
+{% endblock %} 

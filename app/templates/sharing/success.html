@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Share Link Created</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Your share link has been created successfully.
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="card-title">Share Link</h5>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ share_url }}" readonly>
+                            <button type="button" class="btn btn-outline-primary" onclick="copyToClipboard(this.previousElementSibling)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="card-title">Access PIN</h5>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ shared_link.access_pin }}" readonly>
+                            <button type="button" class="btn btn-outline-primary" onclick="copyToClipboard(this.previousElementSibling)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <small class="text-muted">This PIN will be required to access the shared account.</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="card-title">Expiration</h5>
+                        <p class="card-text">
+                            This share link will expire on: <strong>{{ shared_link.expires_at.strftime('%Y-%m-%d %H:%M:%S') }}</strong>
+                        </p>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('accounts.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Accounts
+                        </a>
+                        <a href="{{ url_for('sharing.create', account_id=shared_link.account.id) }}" class="btn btn-primary">
+                            <i class="fas fa-share-alt"></i> Create Another Share
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(element) {
+    element.select();
+    document.execCommand('copy');
+    element.blur();
+    
+    // Show temporary success message
+    const button = element.nextElementSibling;
+    const originalIcon = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    setTimeout(() => {
+        button.innerHTML = originalIcon;
+    }, 2000);
+}
+</script>
+{% endblock %} 

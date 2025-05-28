@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Account Management - CredEx{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Accounts</h2>
+        <a href="{{ url_for('accounts.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Account
+        </a>
+    </div>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('accounts.index') }}" class="row g-3">
+                {{ form.hidden_tag() }}
+                <div class="col-md-6">
+                    {{ form.search.label(class="form-label") }}
+                    {{ form.search(class="form-control", placeholder="Search by account name...") }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.category_id.label(class="form-label") }}
+                    {{ form.category_id(class="form-select") }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if accounts %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Category</th>
+                    <th>Notes</th>
+                    <th>URL</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    <td>{{ account.name }}</td>
+                    <td>{{ account.username }}</td>
+                    <td>{{ account.email or '-' }}</td>
+                    <td>{{ account.category.name if account.category else 'Uncategorized' }}</td>
+                    <td>
+                        {% if account.notes %}
+                            <span class="text-truncate d-inline-block" style="max-width: 150px;" 
+                                  data-bs-toggle="tooltip" 
+                                  data-bs-placement="top" 
+                                  title="{{ account.notes }}">
+                                {{ account.notes }}
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if account.url %}
+                        <a href="{{ account.url }}" target="_blank" class="text-decoration-none">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-link text-primary p-0" 
+                                    onclick="showPassword({{ account.id }})"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="View Password">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            <a href="{{ url_for('accounts.edit', id=account.id) }}" 
+                               class="btn btn-sm btn-link text-primary p-0"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="top"
+                               title="Edit Account">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('sharing.create', account_id=account.id) }}" 
+                               class="btn btn-sm btn-link text-success p-0"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="top"
+                               title="Share Account">
+                                <i class="fas fa-share-alt"></i>
+                            </a>
+                            <button type="button" 
+                                    class="btn btn-sm btn-link text-danger p-0" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal{{ account.id }}"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Delete Account">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <!-- Delete Confirmation Modal -->
+                        <div class="modal fade" id="deleteModal{{ account.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirm Deletion</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to delete the account "{{ account.name }}"?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <form action="{{ url_for('accounts.delete', id=account.id) }}" method="POST" class="d-inline">
+                                            {{ form.csrf_token }}
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No accounts found. Click "Add New Account" to create one.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Password Modal -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="password-field">
+                    <input type="password" class="form-control" id="passwordField" readonly>
+                    <span class="password-toggle">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyPassword()">Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.btn-link {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-link:hover {
+    transform: scale(1.2);
+    opacity: 0.8;
+}
+
+.btn-link i {
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPassword = '';
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+
+function showPassword(accountId) {
+    fetch(`/accounts/${accountId}/password`)
+        .then(response => response.json())
+        .then(data => {
+            currentPassword = data.password;
+            document.getElementById('passwordField').value = currentPassword;
+            new bootstrap.Modal(document.getElementById('passwordModal')).show();
+        });
+}
+
+function copyPassword() {
+    copyToClipboard(currentPassword);
+}
+</script>
+{% endblock %} 
