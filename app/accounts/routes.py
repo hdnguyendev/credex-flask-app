@@ -15,6 +15,11 @@ def index():
     form.category_id.choices = [(c.id, c.name) for c in Category.query.filter_by(user_id=current_user.id).all()]
     form.category_id.choices.insert(0, (0, 'All'))
     
+    # Populate form with GET parameters
+    if request.method == 'GET':
+        form.search.data = request.args.get('search', '')
+        form.category_id.data = request.args.get('category_id', type=int)
+    
     query = Account.query.filter_by(user_id=current_user.id)
     
     # Apply search filter
