@@ -27,4 +27,5 @@ MarkupSafe==2.1.5
 # CLI
 click==8.1.7
 
-wtforms~=3.2.1
+wtforms~=3.1.2
+psycopg2-binary==2.9.10
